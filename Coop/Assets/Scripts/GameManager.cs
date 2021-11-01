@@ -1,10 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
     public List<GameObject> levels;
+
+    public TextMeshProUGUI title;
+    public TextMeshProUGUI victory;
+    public TextMeshProUGUI failure;
 
     private PlayerControl player1;
     private PlayerControl player2;
@@ -15,6 +20,7 @@ public class GameManager : MonoBehaviour
     public GameObject spawnP1;
     public GameObject spawnP2;
 
+    public bool activeGame;
     public bool levelUp;
 
     private int rooms = 1;
@@ -34,19 +40,27 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        //Level beaten
-        if (goal_P1.beaten_P1 == true && goal_P2.beaten_P2 == true) {
-            Debug.Log("Level Up!");
-        }
+        if (activeGame) {
+            //Hide title
+            title.gameObject.SetActive(false);
 
-        //EDITOR >>> Enter next level -------------------------------------------------------------
-        if (Input.GetKeyDown(KeyCode.Return)) {
-            newLevel();
-        }
+            //Level beaten
+            if (goal_P1.beaten_P1 == true && goal_P2.beaten_P2 == true)
+            {
+                Debug.Log("Level Up!");
+            }
 
-        //Once X levels are complete, end game
-        if (levels.Count < rooms) {
-            //Debug.Log("Spawn end room!");
+            //EDITOR >>> Enter next level -------------------------------------------------------------
+            if (Input.GetKeyDown(KeyCode.Return))
+            {
+                newLevel();
+            }
+
+            //Once X levels are complete, end game
+            if (levels.Count < rooms)
+            {
+                //Debug.Log("Spawn end room!");
+            }
         }
     }
 
