@@ -6,6 +6,7 @@ using TMPro;
 public class GameManager : MonoBehaviour
 {
     public List<GameObject> levels;
+    private int index = 0;
 
     public TextMeshProUGUI title;
     public TextMeshProUGUI victory;
@@ -31,7 +32,8 @@ public class GameManager : MonoBehaviour
         player1 = GameObject.Find("Player1").GetComponent<PlayerControl>();
         player2 = GameObject.Find("Player2").GetComponent<PlayerControl>();
 
-        //Start with tutorial in scene
+        //Start with tutorial in scene (Tutorial is 0 indexed)
+        //Instantiate(levels[index], new Vector3(0, -3, 0), transform.rotation);
         //getLevelData();
 
         //EDITOR >>> New level --------------------------------------------------------------------
@@ -45,20 +47,17 @@ public class GameManager : MonoBehaviour
             title.gameObject.SetActive(false);
 
             //Level beaten
-            if (goal_P1.beaten_P1 == true && goal_P2.beaten_P2 == true)
-            {
+            if (goal_P1.beaten_P1 == true && goal_P2.beaten_P2 == true) {
                 Debug.Log("Level Up!");
             }
 
             //EDITOR >>> Enter next level -------------------------------------------------------------
-            if (Input.GetKeyDown(KeyCode.Return))
-            {
+            if (Input.GetKeyDown(KeyCode.Return)) {
                 newLevel();
             }
 
             //Once X levels are complete, end game
-            if (levels.Count < rooms)
-            {
+            if (levels.Count < rooms) {
                 //Debug.Log("Spawn end room!");
             }
         }
@@ -67,6 +66,17 @@ public class GameManager : MonoBehaviour
     //New random level spawn
     private void newLevel()
     {
+        //Remove old level from possible choices (Starting with the tutorial)
+        //levels.RemoveAt(index);
+
+        cleanSlate();
+
+        getLevelData();
+    }
+
+    //Destroy and spawn level for new levels or resets
+    private void cleanSlate()
+    {
         //Clear out old levels
         GameObject[] clear = GameObject.FindGameObjectsWithTag("Level");
         foreach (GameObject stage in clear) {
@@ -74,20 +84,26 @@ public class GameManager : MonoBehaviour
         }
 
         //Spawn new random level
-        int index = Random.Range(0, levels.Count);
+        index = Random.Range(0, levels.Count);
         Instantiate(levels[index], new Vector3(0, -3, 0), transform.rotation);
-        //EDITOR >>> Show level chosen ------------------------------------------------------------
-        Debug.Log("Chose level: " + levels[index]);
-
-        getLevelData();
-        
-        //Remove from possible choices
-        levels.RemoveAt(index);
     }
 
     //Get data for levels
     private void getLevelData()
     {
+        //Slight delay to spawn
+        StartCoroutine(load());
+
+        //Move players to new spawns
+        levelUp = true;
+        activeGame = false;
+    }
+
+    //Pause for 1/50 second
+    IEnumerator load()
+    {
+        yield return new WaitForSeconds(0.02f);
+
         //Get goals
         goal_P1 = GameObject.FindWithTag("Player1Goal").GetComponent<GoalControl>();
         goal_P2 = GameObject.FindWithTag("Player2Goal").GetComponent<GoalControl>();
@@ -97,16 +113,7 @@ public class GameManager : MonoBehaviour
         spawnP2 = GameObject.FindWithTag("Player2Spawn");
 
         //Move players to new spawns
-        levelUp = true;
-        StartCoroutine(load());
-    }
-
-    //Pause for 1/100 second
-    IEnumerator load()
-    {
-        yield return new WaitForSeconds(0.01f);
-        spawnP1 = GameObject.FindWithTag("Player1Spawn");
-        spawnP2 = GameObject.FindWithTag("Player2Spawn");
         levelUp = false;
+        activeGame = true;
     }
 }

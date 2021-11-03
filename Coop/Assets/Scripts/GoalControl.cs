@@ -12,12 +12,14 @@ public class GoalControl : MonoBehaviour
 
     void Start()
     {
-        //Set color based on goal type
+        //Set color and tag to respective goals
         colored = GetComponent<Renderer>().material;
         if (goal_P1) {
-            colored.color = Color.red;
-        } else {
             colored.color = Color.blue;
+            gameObject.tag = "Player1Goal";
+        } else {
+            colored.color = Color.red;
+            gameObject.tag = "Player2Goal";
         }
     }
 

@@ -10,9 +10,9 @@ public class PlayerControl : MonoBehaviour
 
     private float rise;
     private float side;
+    //Button1 = Jump, Button2 = Interact, Button3 = Reset (in GameManager)
     private float button1;
     private float button2;
-    private float button3;
 
     private GameManager control;
     private Rigidbody stiff;
@@ -26,10 +26,11 @@ public class PlayerControl : MonoBehaviour
     void Update()
     {
         inputs();
+
         rotation();
 
         //Keep at Z = 0
-        transform.position = new Vector3(transform.position.x, transform.position.y, 0);
+        //transform.position = new Vector3(transform.position.x, transform.position.y, 0);
 
         //Movement & jump
         stiff.AddForce(Vector3.right * side * Time.deltaTime * 50, ForceMode.Impulse);
@@ -46,6 +47,7 @@ public class PlayerControl : MonoBehaviour
         }
 
         //EDITOR >>> Fall out -----------------------------------------------------------------
+        //Added wall coliders
         if (transform.position.y < -10) {
             respawn();
         }
@@ -72,13 +74,11 @@ public class PlayerControl : MonoBehaviour
             side = Input.GetAxis("SideOne");
             button1 = Input.GetAxis("ButtonOne1");
             button2 = Input.GetAxis("ButtonOne2");
-            button3 = Input.GetAxis("ButtonOne3");
         } else {
             rise = Input.GetAxis("RiseTwo");
             side = Input.GetAxis("SideTwo");
             button1 = Input.GetAxis("ButtonTwo1");
             button2 = Input.GetAxis("ButtonTwo2");
-            button3 = Input.GetAxis("ButtonTwo3");
         }
     }
 
@@ -106,11 +106,11 @@ public class PlayerControl : MonoBehaviour
         }
     }
 
-    //Move to spawns after 1/50 second
+    //Move to spawns after 1/20 second
     //NOTE >>> This delay allows for scripts to find new spawns
     IEnumerator levelupSpawn()
     {
-        yield return new WaitForSeconds(0.02f);
+        yield return new WaitForSeconds(0.05f);
         respawn();
     }
 
