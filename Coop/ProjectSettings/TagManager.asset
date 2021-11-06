@@ -11,6 +11,8 @@ TagManager:
   - Player2Spawn
   - Hazard
   - Ground
+  - LaserBlue
+  - LaserRed
   layers:
   - Default
   - TransparentFX

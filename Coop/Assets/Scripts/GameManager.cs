@@ -21,10 +21,12 @@ public class GameManager : MonoBehaviour
     public GameObject spawnP1;
     public GameObject spawnP2;
 
+    private bool resetDelay = false;
     public bool activeGame;
     public bool levelUp;
 
-    private int rooms = 1;
+    //Inverted levels beaten. Uses levels.Count to see how many levels remain
+    private int levelsRemain = 1;
 
     void Start()
     {
@@ -33,11 +35,8 @@ public class GameManager : MonoBehaviour
         player2 = GameObject.Find("Player2").GetComponent<PlayerControl>();
 
         //Start with tutorial in scene (Tutorial is 0 indexed)
-        //Instantiate(levels[index], new Vector3(0, -3, 0), transform.rotation);
-        //getLevelData();
-
-        //EDITOR >>> New level --------------------------------------------------------------------
-        newLevel();
+        setNew();
+        getLevelData();
     }
 
     void Update()
@@ -51,13 +50,24 @@ public class GameManager : MonoBehaviour
                 Debug.Log("Level Up!");
             }
 
+            //Both players press reset
+            if (Input.GetAxis("ButtonOne3") > 0 && Input.GetAxis("ButtonTwo3") > 0 && resetDelay == false) {
+                Debug.Log("Reset Level!");
+                resetDelay = true;
+                StartCoroutine(delayed());
+                cleanSlate();
+                setNew();
+                getLevelData();
+            }
+
             //EDITOR >>> Enter next level -------------------------------------------------------------
+            //Advance to next level
             if (Input.GetKeyDown(KeyCode.Return)) {
                 newLevel();
             }
 
             //Once X levels are complete, end game
-            if (levels.Count < rooms) {
+            if (levels.Count < levelsRemain) {
                 //Debug.Log("Spawn end room!");
             }
         }
@@ -67,14 +77,18 @@ public class GameManager : MonoBehaviour
     private void newLevel()
     {
         //Remove old level from possible choices (Starting with the tutorial)
-        //levels.RemoveAt(index);
+        levels.RemoveAt(index);
 
         cleanSlate();
+
+        //Random new level from remaining
+        index = Random.Range(0, levels.Count);
+        setNew();
 
         getLevelData();
     }
 
-    //Destroy and spawn level for new levels or resets
+    //Destroy levels for resets or levelups
     private void cleanSlate()
     {
         //Clear out old levels
@@ -82,10 +96,12 @@ public class GameManager : MonoBehaviour
         foreach (GameObject stage in clear) {
             Destroy(stage);
         }
+    }
 
-        //Spawn new random level
-        index = Random.Range(0, levels.Count);
-        Instantiate(levels[index], new Vector3(0, -3, 0), transform.rotation);
+    //Spawn level
+    private void setNew()
+    {
+        Instantiate(levels[index], new Vector3(0, 0, 0), transform.rotation);
     }
 
     //Get data for levels
@@ -99,10 +115,11 @@ public class GameManager : MonoBehaviour
         activeGame = false;
     }
 
-    //Pause for 1/50 second
+    //Pause for 1/100 second
+    //NOTE >>> This pause helps the level load before finding the spawns and goals
     IEnumerator load()
     {
-        yield return new WaitForSeconds(0.02f);
+        yield return new WaitForSeconds(0.01f);
 
         //Get goals
         goal_P1 = GameObject.FindWithTag("Player1Goal").GetComponent<GoalControl>();
@@ -115,5 +132,12 @@ public class GameManager : MonoBehaviour
         //Move players to new spawns
         levelUp = false;
         activeGame = true;
+    }
+
+    //Cooldown on resets
+    IEnumerator delayed()
+    {
+        yield return new WaitForSeconds(2);
+        resetDelay = false;
     }
 }

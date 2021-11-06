@@ -23,14 +23,26 @@ public class GoalControl : MonoBehaviour
         }
     }
 
-    void Update()
+    //When player reaches goal
+    void OnTriggerStay(Collider other)
     {
-
+        StartCoroutine(inGoal(other));
     }
 
-    //When player reaches goal
-    void OnTriggerEnter(Collider other)
+    //When player leaves goal
+    void OnTriggerExit(Collider other)
     {
+        if (goal_P1) {
+            beaten_P1 = false;
+        } else {
+            beaten_P2 = false;
+        }
+    }
+
+    //Player has to stay in goal for 3/4 sec
+    IEnumerator inGoal(Collider other)
+    {
+        yield return new WaitForSeconds(0.75f);
         if (goal_P1) {
             if (other.name == "Player1") {
                 beaten_P1 = true;
