@@ -13,6 +13,8 @@ TagManager:
   - Ground
   - LaserBlue
   - LaserRed
+  - P1Heart
+  - P2Heart
   layers:
   - Default
   - TransparentFX

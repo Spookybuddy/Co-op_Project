@@ -11,7 +11,6 @@ public class LeverFunction : MonoBehaviour
     public GameObject[] connection;
 
     private Material matt;
-    private Material conMat;
     public Texture green;
     public Texture red;
 
@@ -38,7 +37,7 @@ public class LeverFunction : MonoBehaviour
                 function();
             }
         } else if (other.name == "Player2") {
-            if (Input.GetAxis("ButtonTwo2") > 0 && locked == false) {
+            if ((Input.GetAxis("ButtonTwo2") > 0 || (Input.GetKeyDown(KeyCode.Keypad5) || Input.GetKeyDown(KeyCode.Keypad8))) && locked == false) {
                 function();
             }
         }

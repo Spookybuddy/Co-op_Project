@@ -8,40 +8,34 @@ public class PlayerControl : MonoBehaviour
     public bool jump;
     private bool locked;
     public int lives;
+    private bool set;
 
     private float rise;
     private float side;
+
     //Button1 = Jump, Button2 = Interact, Button3 = Reset (in GameManager)
     private float button1;
     private float button2;
 
     private GameManager control;
     private Rigidbody stiff;
+    private Animator amine;
 
     void Start()
     {
-        //Set lives based on difficulty
-        lives = 5;
+        set = false;
         stiff = GetComponent<Rigidbody>();
         control = GameObject.Find("Manager").GetComponent<GameManager>();
+        amine = GetComponent<Animator>();
+        lives = 5;
     }
 
     void Update()
     {
-        inputs();
-
-        rotation();
-
-        //Movement & jump
-        stiff.AddForce(Vector3.right * side * Time.deltaTime * 50, ForceMode.Impulse);
-        stiff.velocity = new Vector3(side * Mathf.Min(Mathf.Abs(stiff.velocity.x), 4.0f), stiff.velocity.y, 0.0f);
-
-        //Jump with either up or button1
-        if ((button1 > 0 || rise > 0) && jump == true && locked == false) {
-            stiff.AddForce(Vector3.up * 5, ForceMode.Impulse);
-            jump = false;
-            locked = true;
-            StartCoroutine(pause());
+        //Set lives based on difficulty
+        if (control.hardMode && !set) {
+            lives = lives - 2;
+            set = true;
         }
 
         //Level up respawn
@@ -49,23 +43,44 @@ public class PlayerControl : MonoBehaviour
             StartCoroutine(levelupSpawn());
         }
 
-        //Fallout
-        if (transform.position.y < -10) {
-            hurted();
-            respawn();
+        if (control.activeGame) {
+            inputs();
+
+            rotation();
+
+            //Movement & jump
+            stiff.AddForce(Vector3.right * side * Time.deltaTime * 50, ForceMode.Impulse);
+            stiff.velocity = new Vector3(side * Mathf.Min(Mathf.Abs(stiff.velocity.x), 4.0f), stiff.velocity.y, 0.0f);
+            if (stiff.velocity.x != 0) {
+                amine.SetBool("Run", true);
+            } else {
+                amine.SetBool("Run", false);
+            }
+
+            //Jump with either up or button1
+            if ((button1 > 0 || rise > 0) && jump == true && locked == false) {
+                stiff.AddForce(Vector3.up * 5.5f, ForceMode.Impulse);
+                jump = false;
+                locked = true;
+                StartCoroutine(pause());
+            }
+
+            //Fallout
+            if (transform.position.y < -5) {
+                hurted();
+                respawn();
+            }
         }
     }
 
     //Rotate to face direction
     private void rotation()
     {
-        //Face camera when idle
-        if (side == 0) {
-            transform.rotation = Quaternion.Euler(0, 90, 0);
-        } else if (side > 0) {
-            transform.rotation = Quaternion.Euler(0, 0, 0);
+        //Rotate to falce direction inputed
+        if (side > 0) {
+            transform.rotation = Quaternion.Euler(-90, 90, 0);
         } else if (side < 0) {
-            transform.rotation = Quaternion.Euler(0, 180, 0);
+            transform.rotation = Quaternion.Euler(-90, 90, 180);
         }
     }
 
@@ -82,6 +97,10 @@ public class PlayerControl : MonoBehaviour
             side = Input.GetAxis("SideTwo");
             button1 = Input.GetAxis("ButtonTwo1");
             button2 = Input.GetAxis("ButtonTwo2");
+            //Player 2 also can use numpad
+            if (Input.GetKey(KeyCode.Keypad4) || Input.GetKey(KeyCode.Keypad7)) {
+                button1 = Mathf.Min(1, button1 + Time.deltaTime);
+            }
         }
     }
 
