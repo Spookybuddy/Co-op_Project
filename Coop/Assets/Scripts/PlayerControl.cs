@@ -7,8 +7,10 @@ public class PlayerControl : MonoBehaviour
     public bool p1;
     public bool jump;
     private bool locked;
+    private bool iFrame;
     public int lives;
     private bool set;
+    private bool stepWait;
 
     private float rise;
     private float side;
@@ -19,14 +21,22 @@ public class PlayerControl : MonoBehaviour
 
     private GameManager control;
     private Rigidbody stiff;
-    private Animator amine;
+    //private Animator amine;
+
+    private AudioSource noises;
+    public AudioClip walkin;
+    public AudioClip jumped;
+    public AudioClip oof;
 
     void Start()
     {
         set = false;
+        iFrame = false;
+        stepWait = true;
         stiff = GetComponent<Rigidbody>();
+        noises = GetComponent<AudioSource>();
         control = GameObject.Find("Manager").GetComponent<GameManager>();
-        amine = GetComponent<Animator>();
+        //amine = GetComponent<Animator>();
         lives = 5;
     }
 
@@ -51,24 +61,33 @@ public class PlayerControl : MonoBehaviour
             //Movement & jump
             stiff.AddForce(Vector3.right * side * Time.deltaTime * 50, ForceMode.Impulse);
             stiff.velocity = new Vector3(side * Mathf.Min(Mathf.Abs(stiff.velocity.x), 4.0f), stiff.velocity.y, 0.0f);
-            if (stiff.velocity.x != 0) {
+
+            //EDITOR NOTE >>> Animations not working :( -------------------------------------------------------------------
+            /*if (stiff.velocity.x != 0) {
                 amine.SetBool("Run", true);
             } else {
                 amine.SetBool("Run", false);
+            }*/
+
+            //Walking sound
+            if (Mathf.Abs(stiff.velocity.x) > 1 && Mathf.Abs(stiff.velocity.y) < 0.1f && stepWait && jump) {
+                stepWait = false;
+                noises.PlayOneShot(walkin, 0.3f);
+                StartCoroutine(footstep());
             }
 
             //Jump with either up or button1
             if ((button1 > 0 || rise > 0) && jump == true && locked == false) {
                 stiff.AddForce(Vector3.up * 5.5f, ForceMode.Impulse);
+                noises.PlayOneShot(jumped, 1.0f);
                 jump = false;
                 locked = true;
                 StartCoroutine(pause());
             }
 
             //Fallout
-            if (transform.position.y < -5) {
+            if (transform.position.y < -5 && !iFrame) {
                 hurted();
-                respawn();
             }
         }
     }
@@ -119,9 +138,10 @@ public class PlayerControl : MonoBehaviour
     private void hurted()
     {
         lives = lives - 1;
-        if (lives < 0) {
-            //Game End
-        }
+        noises.PlayOneShot(oof, 1.0f);
+        iFrame = true;
+        transform.position = new Vector3(0, 20, 0);
+        StartCoroutine(respawnDelay());
     }
 
     //On ground // Hit obstacle
@@ -135,9 +155,8 @@ public class PlayerControl : MonoBehaviour
         }
 
         //Hit obstacle
-        if (collision.gameObject.CompareTag("Hazard")) {
+        if (collision.gameObject.CompareTag("Hazard") && !iFrame) {
             hurted();
-            respawn();
         }
     }
 
@@ -145,14 +164,12 @@ public class PlayerControl : MonoBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (p1) {
-            if (other.gameObject.CompareTag("LaserRed")) {
+            if (other.gameObject.CompareTag("LaserRed") && !iFrame) {
                 hurted();
-                respawn();
             }
         } else {
-            if (other.gameObject.CompareTag("LaserBlue")) {
+            if (other.gameObject.CompareTag("LaserBlue") && !iFrame) {
                 hurted();
-                respawn();
             }
         }
     }
@@ -170,5 +187,20 @@ public class PlayerControl : MonoBehaviour
     {
         yield return new WaitForSeconds(0.5f);
         locked = false;
+    }
+
+    //Delay on move to spawn when killed
+    IEnumerator respawnDelay()
+    {
+        yield return new WaitForSeconds(0.2f);
+        iFrame = false;
+        respawn();
+    }
+
+    //Footstep delay
+    IEnumerator footstep()
+    {
+        yield return new WaitForSeconds(0.5f);
+        stepWait = true;
     }
 }

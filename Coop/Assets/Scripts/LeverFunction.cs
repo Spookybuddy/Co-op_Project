@@ -14,9 +14,13 @@ public class LeverFunction : MonoBehaviour
     public Texture green;
     public Texture red;
 
+    public AudioClip flip;
+    private AudioSource noises;
+
     void Start()
     {
         matt = GetComponent<Renderer>().material;
+        noises = GetComponent<AudioSource>();
     }
 
     void Update()
@@ -53,6 +57,7 @@ public class LeverFunction : MonoBehaviour
         }
         //Invert lever boolian and lock lever to prevent spam
         leverOn = !leverOn;
+        noises.PlayOneShot(flip, 0.8f);
         locked = true;
         StartCoroutine(unlock());
     }
